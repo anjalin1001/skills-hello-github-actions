@@ -1,0 +1,58 @@
+name: Deploy Airflow DAGs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install flake8 pytest
+
+      - name: Lint DAGs
+        run: |
+          flake8 dags/
+
+      - name: Run Tests
+        run: |
+          pytest tests/
+
+  deploy:
+    needs: validate
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy DAGs
+        run: |
+          gsutil -m rsync -r dags gs://${{ secrets.COMPOSER_BUCKET }}/dags
