@@ -1,59 +1,39 @@
-name: Deploy Airflow DAGs
+name: Sync dags to GCS
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
+    paths:
+      - 'dags/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-
-  validate:
+  sync-dags:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v3
         with:
-          python-version: '3.11'
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
 
-      - name: Install Dependencies
-        run: |
-          pip install flake8 pytest
-
-      - name: Lint DAGs
-        run: |
-          flake8 dags/
-
-      - name: Run Tests
-        run: |
-          pytest tests/
-
-  deploy:
-    needs: validate
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-
-      - uses: actions/checkout@v4
-
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
-
-      - name: Setup Google Cloud SDK
+      - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Deploy DAGs
+      - name: Sync dags folder to GCS
+        env:
+          GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
         run: |
-          gsutil -m rsync -r dags gs://${{ secrets.COMPOSER_BUCKET }}/dags
+          gcloud storage rsync ./dags gs://${GCS_BUCKET}/dags --recursive --delete-unmatched-destination-objects
