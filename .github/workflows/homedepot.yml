@@ -69,7 +69,7 @@ jobs:
           SYNC_DIRS: ${{ vars.SYNC_DIRS }}
         run: |
           shopt -s nullglob
-          IFS='' read -ra PREFIXES <<< "$SYNC_DIRS"
+          IFS=' ' read -ra PREFIXES <<< "$SYNC_DIRS"
           declare -A VALID_DIRS=()
 
           for prefix in "${PREFIXES[@]}"; do
