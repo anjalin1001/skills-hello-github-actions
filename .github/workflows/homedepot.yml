@@ -65,9 +65,10 @@ jobs:
           #  -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
           #  . "${{ secrets.COMPOSER_BUCKET }}"
       - name: Mirror only relevant folders to GCS
+        SYNC_DIRS: ${{ vars.SYNC_DIRS }}
         run: |
           shopt -s nullglob
-          for dir in ${vars.SYNC_DIRS}*/ ; do
+          for dir in ${SYNC_DIRS}*/ ; do
             dir="${dir%/}"
             echo "Syncing $dir"
             gsutil -m rsync -r -d -c "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"            
