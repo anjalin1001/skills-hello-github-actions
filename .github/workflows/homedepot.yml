@@ -59,11 +59,11 @@ jobs:
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Mirror repo to GCS (exact structure, delete stale)
-        run: |
-          gsutil -m rsync -r -d \
-            -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
-            . "${{ secrets.COMPOSER_BUCKET }}"
+          #      - name: Mirror repo to GCS (exact structure, delete stale)
+          #run: |
+          #gsutil -m rsync -r -d \
+          #  -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
+          #  . "${{ secrets.COMPOSER_BUCKET }}"
       - name: Mirror only relevant folders to GCS
         run: |
           for dir in ${{ vars.SYNC_DIRS }}; do
