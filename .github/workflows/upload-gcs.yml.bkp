@@ -1,0 +1,27 @@
+jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - id: 'checkout'
+      uses: 'actions/checkout@v4'
+
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v3'
+      with:
+        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+    - id: 'upload-file'
+      uses: 'google-github-actions/upload-cloud-storage@v3'
+      with:
+        path: '../../dags/'
+        destination: gs://${{ secrets.COMPOSER_BUCKET }}
+
+    # Example of using the output
+    - id: 'uploaded-files'
+      uses: 'foo/bar@v1'
+      env:
+        file: '${{ steps.upload-file.outputs.uploaded }}'
