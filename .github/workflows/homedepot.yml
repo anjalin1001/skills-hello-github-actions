@@ -69,9 +69,33 @@ jobs:
           SYNC_DIRS: ${{ vars.SYNC_DIRS }}
         run: |
           shopt -s nullglob
-          for dir in ${SYNC_DIRS}*/ ; do
-            dir="${dir%/}"
-            echo "Syncing $dir"
-            gsutil -m rsync -r -d -c "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"            
+          IFS='' read -ra PREFIXES <<< "$SYNC_DIRS"
+          declare -A VALID_DIRS=()
+
+          for prefix in "${PREFIXES[@]}"; do
+            for dir in ${prefix}*/ ; do
+              dir="${dir%/}"
+              echo "Syncing $dir"
+              gsutil -m rsync -r -d -c "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"
+              VALID_DIRS["$dir"]=1
+            done
           done
           shopt -u nullglob
+
+          echo "Checking for stale folders in GCS..."
+          gsutil ls "${{ secrets.COMPOSER_BUCKET }}/" | while read -r path; do
+            folder_name=$(basename "${path%/}")
+            if [[ -z "${VALID_DIRS[$folder_name]}" ]]; then
+              echo "Removing stale folder from GCS: $folder_name"
+              gsutil -m rm -r "$path"
+            fi
+          done
+
+
+
+          #          for dir in ${SYNC_DIRS}*/ ; do
+          #            dir="${dir%/}"
+          #            echo "Syncing $dir"
+          #            gsutil -m rsync -r -d -c "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"            
+          #          done
+          #          shopt -u nullglob
