@@ -3,7 +3,12 @@ name: Deploy Airflow DAGs
 on:
   push:
     branches:
-      - main
+      - 'feature/homedepot'
+
+  pull_request:
+    branches:
+      - 'main'
+      - 'feature/homedepot'
 
 jobs:
 
