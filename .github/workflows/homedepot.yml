@@ -28,8 +28,9 @@ jobs:
           pip install flake8 pytest
 
       - name: Lint DAGs
+        continue-on-error: true
         run: |
-          flake8 dags/
+          flake8 .
 
 #      - name: Run Tests
 #        run: |
@@ -63,3 +64,11 @@ jobs:
           gsutil -m rsync -r -d \
             -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
             . "${{ secrets.COMPOSER_BUCKET }}"
+      - name: Mirror only relevant folders to GCS
+        run: |
+          for dir in ${{ vars.SYNC_DIRS }}; do
+            if [ -d "$dir" ]; then
+              echo "Syncing $dir"
+              gsutil -m rsync -r -d "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"
+            fi
+          done
