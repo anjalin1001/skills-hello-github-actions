@@ -59,17 +59,8 @@ jobs:
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Deploy DAGs
-        #        run: |
-          #          gsutil -m rsync -r dags ${{ secrets.COMPOSER_BUCKET }}
+      - name: Mirror repo to GCS (exact structure, delete stale)
         run: |
-          EXCLUDE=("tests" ".github" "docs")
-          for dir in */ ; do
-            dir="${dir%/}"  # strip trailing slash
-            if [[ " ${EXCLUDE[@]} " =~ " ${dir} " ]]; then
-              echo "Skipping excluded folder: $dir"
-              continue
-            fi
-            echo "Syncing folder: $dir"
-            gsutil -m rsync -r -d "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"
-          done
+          gsutil -m rsync -r -d \
+            -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
+            . "${{ secrets.COMPOSER_BUCKET }}"
