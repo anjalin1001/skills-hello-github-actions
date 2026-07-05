@@ -60,5 +60,16 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy DAGs
+        #        run: |
+          #          gsutil -m rsync -r dags ${{ secrets.COMPOSER_BUCKET }}
         run: |
-          gsutil -m rsync -r dags ${{ secrets.COMPOSER_BUCKET }}
+          EXCLUDE=("tests" ".github" "docs")
+          for dir in */ ; do
+            dir="${dir%/}"  # strip trailing slash
+            if [[ " ${EXCLUDE[@]} " =~ " ${dir} " ]]; then
+              echo "Skipping excluded folder: $dir"
+              continue
+            fi
+            echo "Syncing folder: $dir"
+            gsutil -m rsync -r -d "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"
+          done
