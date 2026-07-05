@@ -66,9 +66,10 @@ jobs:
           #  . "${{ secrets.COMPOSER_BUCKET }}"
       - name: Mirror only relevant folders to GCS
         run: |
-          for dir in ${{ vars.SYNC_DIRS }}; do
-            if [ -d "$dir" ]; then
-              echo "Syncing $dir"
-              gsutil -m rsync -r -d "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"
-            fi
+          shopt -s nullglob
+          for dir in ${vars.SYNC_DIRS}*/ ; do
+            dir="${dir%/}"
+            echo "Syncing $dir"
+            gsutil -m rsync -r -d -c "$dir" "${{ secrets.COMPOSER_BUCKET }}/$dir"            
           done
+          shopt -u nullglob
