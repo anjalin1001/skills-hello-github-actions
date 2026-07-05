@@ -65,7 +65,8 @@ jobs:
           #  -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
           #  . "${{ secrets.COMPOSER_BUCKET }}"
       - name: Mirror only relevant folders to GCS
-        SYNC_DIRS: ${{ vars.SYNC_DIRS }}
+        env:
+          SYNC_DIRS: ${{ vars.SYNC_DIRS }}
         run: |
           shopt -s nullglob
           for dir in ${SYNC_DIRS}*/ ; do
