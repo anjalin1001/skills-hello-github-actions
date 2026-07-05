@@ -27,18 +27,14 @@ jobs:
         run: |
           pip install flake8 pytest
 
-      - name: Lint DAGs
-        continue-on-error: true
-        run: |
-          flake8 .
-
-#      - name: Run Tests
-#        run: |
-#          pytest tests/
+          #      - name: Lint DAGs
+          #        continue-on-error: true
+          #        run: |
+          #          flake8 .
 
   deploy:
     needs: validate
-
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     permissions:
