@@ -34,6 +34,9 @@ jobs:
 #      - name: Run Tests
 #        run: |
 #          pytest tests/
+#      - name: Run Tests
+#        run: |
+#          pytest tests/
 
   deploy:
     needs: validate
@@ -61,6 +64,4 @@ jobs:
 
       - name: Mirror repo to GCS (exact structure, delete stale)
         run: |
-          gsutil -m rsync -r -d \
-            -x "^\.git/.*$|^\.github/.*$|^README\.md$|^\.gitignore$" \
-            . "${{ secrets.COMPOSER_BUCKET }}"
+          gsutil -m rsync -r dags gs://${{ secrets.COMPOSER_BUCKET }}
