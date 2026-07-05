@@ -3,13 +3,7 @@ name: Deploy Airflow DAGs
 on:
   push:
     branches:
-      - 'feature/homedepot'
-
-  pull_request:
-    branches:
       - 'main'
-      - 'feature/homedepot'
-      - 'feature/homedepot'
 
   pull_request:
     branches:
@@ -61,14 +55,9 @@ jobs:
           #workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           workload_identity_provider: "projects/970332938397/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
           service_account: '${{ secrets.SERVICE_ACCOUNT }}'
-          #workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          workload_identity_provider: "projects/970332938397/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
-          service_account: '${{ secrets.SERVICE_ACCOUNT }}'
-
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Mirror repo to GCS (exact structure, delete stale)
       - name: Mirror repo to GCS (exact structure, delete stale)
         run: |
           gsutil -m rsync -r -d \
